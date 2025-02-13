@@ -1,0 +1,39 @@
+{
+  "name": "screenshotgenie",
+  "version": "0.0.1",
+  "description": "Node.js client library for Screenshot Genie",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "commonjs",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "ts-node test/example.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/datavis-tech/screenshotgenie.git"
+  },
+  "keywords": [
+    "Screenshot",
+    "Image",
+    "Generation",
+    "Thumbnails",
+    "Images"
+  ],
+  "author": "Datavis Tech INC",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/datavis-tech/screenshotgenie/issues"
+  },
+  "homepage": "https://github.com/datavis-tech/screenshotgenie#readme",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "dotenv": "^16.4.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  }
+}

@@ -44,8 +44,9 @@ const { imageKey } = await genie.createImageKey({
 // Get a thumbnail URL
 const imageUrl = genie.getImageUrl(imageKey, 400);
 
-// Download the image
-await genie.downloadImage(imageKey, 400, "thumbnail.png");
+// Get image URL and download
+const imageUrl = genie.getImageUrl(imageKey, 400);
+await genie.downloadImage(imageUrl, "thumbnail.png");
 ```
 
 ## API Reference
@@ -88,12 +89,13 @@ const url = genie.getImageUrl("abc123_expires_20250311", 800);
 // => https://screenshotgenie.com/images/abc123_800px.png
 ```
 
-#### downloadImage(imageKey, width, filePath)
+#### downloadImage(url, filePath)
 
-Download an image directly to a file.
+Download an image directly to a file from its URL.
 
 ```javascript
-await genie.downloadImage("abc123_expires_20250311", 800, "screenshot.png");
+const url = genie.getImageUrl(imageKey, 800);
+await genie.downloadImage(url, "screenshot.png");
 ```
 
 ## Examples
@@ -115,7 +117,8 @@ const { imageKey } = await genie.createImageKey({
 // Generate multiple sizes
 const sizes = [800, 400, 200];
 for (const width of sizes) {
-  await genie.downloadImage(imageKey, width, `image_${width}px.png`);
+  const url = genie.getImageUrl(imageKey, width);
+  await genie.downloadImage(url, `image_${width}px.png`);
 }
 ```
 
