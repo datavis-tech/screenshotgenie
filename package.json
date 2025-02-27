@@ -2,16 +2,26 @@
   "name": "screenshotgenie",
   "version": "0.0.1",
   "description": "Node.js client library for Screenshot Genie",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "type": "commonjs",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run build:cjs",
+    "build:cjs": "esbuild dist/index.js --bundle --platform=node --outfile=dist/index.cjs --format=cjs",
     "prepare": "npm run build",
-    "test": "ts-node test/example.ts"
+    "test": "vitest",
+    "test:example": "ts-node test/example.ts"
   },
   "repository": {
     "type": "git",
@@ -31,9 +41,11 @@
   },
   "homepage": "https://github.com/datavis-tech/screenshotgenie#readme",
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.13.5",
     "dotenv": "^16.4.7",
+    "esbuild": "^0.25.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.0.0"
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.7"
   }
 }

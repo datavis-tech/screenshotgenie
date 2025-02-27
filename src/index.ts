@@ -1,30 +1,19 @@
 import { writeFile } from "fs/promises";
+import {
+  ImageGenerationInputs,
+  ImageKey,
+  ScreenshotGenieConfig,
+} from "./types";
 
-interface ScreenshotGenieConfig {
-  apiKey?: string;
-  host?: string;
-}
-
-interface ImageGenerationInputs {
-  html?: string;
-  url?: string;
-  width: number;
-  height: number;
-  browserZoom?: number;
-}
+export * from "./types";
 
 /**
  * Screenshot Genie client library for generating and managing screenshots
  */
-export default class ScreenshotGenie {
+export class ScreenshotGenie {
   private apiKey: string | undefined;
   private host: string;
-  /**
-   * Create a new Screenshot Genie client
-   * @param {Object} config Configuration options
-   * @param {string} config.apiKey Your Screenshot Genie API key
-   * @param {string} [config.host="https://screenshotgenie.com"] Optional API host override
-   */
+
   constructor(config: ScreenshotGenieConfig = {}) {
     const {
       apiKey = process.env.SCREENSHOT_GENIE_API_KEY,
@@ -44,17 +33,12 @@ export default class ScreenshotGenie {
     this.host = host;
   }
 
-  /**
-   * Create an image key by providing the HTML or URL and other generation parameters
-   * @param {Object} imageGenerationInputs Generation parameters
-   * @param {string} [imageGenerationInputs.html] HTML content to render
-   * @param {string} [imageGenerationInputs.url] URL to capture (alternative to html)
-   * @param {number} imageGenerationInputs.width Viewport width in pixels
-   * @param {number} imageGenerationInputs.height Viewport height in pixels
-   * @param {number} [imageGenerationInputs.browserZoom=1] Browser zoom level
-   * @returns {Promise<Object>} Object containing { imageKey }
-   */
-  async createImageKey(imageGenerationInputs: ImageGenerationInputs) {
+  async createImageKey(
+    imageGenerationInputs: ImageGenerationInputs
+  ): Promise<ImageKey> {
+    if (!imageGenerationInputs.browserZoom) {
+      imageGenerationInputs.browserZoom = 1.0;
+    }
     const response = await fetch(`${this.host}/api/create-image-key`, {
       method: "POST",
       headers: {
@@ -71,17 +55,17 @@ export default class ScreenshotGenie {
       );
     }
 
-    const { imageKey } = await response.json();
-    return { imageKey };
+    const json = await response.json();
+
+    if (json.ok === false) {
+      throw new Error(json.body);
+    }
+
+    console.log("json", json);
+    return json.imageKey;
   }
 
-  /**
-   * Generate a direct image URL for a given width
-   * @param {string} imageKey The image key returned from createImageKey
-   * @param {number} width Desired image width in pixels
-   * @returns {string} Direct URL to the generated image
-   */
-  getImageUrl(imageKey: string, width: number): string {
+  getImageUrl(imageKey: ImageKey, width: number): string {
     if (!imageKey) {
       throw new Error("`imageKey` is required to generate the image URL.");
     }
@@ -89,22 +73,13 @@ export default class ScreenshotGenie {
       throw new Error("`width` is required to generate the image URL.");
     }
 
-    const imageId = imageKey.split("_")[0];
+    const imageId = imageKey.split("_expires_")[0];
     const imageFileName = `${imageId}_${width}px.png`;
     return `${this.host}/images/${imageFileName}`;
   }
 
-  /**
-   * Download the screenshot directly to a file
-   * @param {string} imageKey The image key to identify the screenshot
-   * @param {number} width Desired image width in pixels
-   * @param {string} filePath Local file path to save the image
-   * @returns {Promise<void>}
-   */
-  async downloadImage(
-    url: string,
-    filePath: string
-  ): Promise<void> {
+  // NodeJS only
+  async downloadImage(url: string, filePath: string): Promise<void> {
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -118,3 +93,35 @@ export default class ScreenshotGenie {
     await writeFile(filePath, buffer);
   }
 }
+
+export const isImageKeyExpired = (imageKey: ImageKey): boolean => {
+  // Extract the expiration date from the image key
+  const parts = imageKey.split("_expires_");
+  if (parts.length !== 2) {
+    throw new Error(
+      "Invalid image key format. Expected format: {imageHash}_expires_{expirationDate}"
+    );
+  }
+
+  const expirationDateStr = parts[1];
+
+  // Validate the expiration date format (should be YYYYMMDD)
+  if (!/^\d{8}$/.test(expirationDateStr)) {
+    throw new Error(
+      "Invalid expiration date format in image key. Expected format: YYYYMMDD"
+    );
+  }
+
+  // Parse the expiration date
+  const year = parseInt(expirationDateStr.substring(0, 4), 10);
+  const month = parseInt(expirationDateStr.substring(4, 6), 10) - 1; // JS months are 0-indexed
+  const day = parseInt(expirationDateStr.substring(6, 8), 10);
+
+  const expirationDate = new Date(year, month, day);
+  expirationDate.setHours(23, 59, 59, 999); // Set to end of the day
+
+  // Compare with current date
+  const currentDate = new Date();
+
+  return currentDate > expirationDate;
+};

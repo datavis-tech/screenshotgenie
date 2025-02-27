@@ -26,7 +26,7 @@ async function captureFromHTML() {
     browserZoom: 1,
   };
 
-  const { imageKey } = await genie.createImageKey(inputs);
+  const imageKey = await genie.createImageKey(inputs);
   console.log("✅ Generated image key:", imageKey);
 
   // Get URLs for different sizes
@@ -55,7 +55,7 @@ async function captureFromURL() {
     browserZoom: 1,
   };
 
-  const { imageKey } = await genie.createImageKey(inputs);
+  const imageKey = await genie.createImageKey(inputs);
   console.log("✅ Generated image key:", imageKey);
 
   // Download full-size image
