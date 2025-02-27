@@ -1,11 +1,22 @@
 import { writeFile } from "fs/promises";
-import {
+import type {
   ImageGenerationInputs,
   ImageKey,
   ScreenshotGenieConfig,
+  ImageHash,
+  ImageFileName,
+  FormattedDateString
 } from "./types";
 
-export * from "./types";
+// Re-export the types
+export type {
+  ImageGenerationInputs,
+  ImageKey,
+  ScreenshotGenieConfig,
+  ImageHash,
+  ImageFileName,
+  FormattedDateString
+};
 
 /**
  * Screenshot Genie client library for generating and managing screenshots
